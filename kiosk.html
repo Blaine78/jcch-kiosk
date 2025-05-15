@@ -1,0 +1,735 @@
+<!DOCTYPE html>
+<html lang="ko">
+
+<head>
+  <meta charset="UTF-8" />
+  <title>키오스크 주문</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css"
+    crossorigin="anonymous" referrerpolicy="no-referrer" />
+  <style>
+    html,
+    body {
+      margin: 0;
+      padding: 0;
+      background: #e9ecef;
+      font-family: 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+      color: #343a40;
+      height: 100vh;
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+    }
+
+    .header {
+      padding: 15px 30px;
+      background: #fff;
+      box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+      text-align: center;
+      position: sticky;
+      top: 0;
+      z-index: 100;
+    }
+    .header-title {
+        font-weight: 600;
+        font-size: 1.8em;
+        color: #343a40;
+        margin: 0;
+    }
+
+    .category-tabs {
+      display: flex;
+      justify-content: center;
+      background: #fff;
+      border-bottom: 1px solid #dee2e6;
+      position: sticky;
+      top: 60px; 
+      z-index: 99;
+      padding: 10px 0;
+      gap: 12px;
+    }
+
+    .category-tabs button {
+      background: none;
+      border: none;
+      padding: 8px 18px;
+      font-size: 1em;
+      font-weight: 500;
+      color: #495057;
+      cursor: pointer;
+      border-radius: 25px;
+      transition: all 0.25s ease;
+      box-shadow: 0 0 0 2px transparent;
+    }
+
+    .category-tabs button.active {
+      color: #fff; 
+      box-shadow: none; 
+      font-weight: 600;
+      background: #17a2b8; 
+    }
+
+    .category-tabs button:hover:not(.active) {
+      color: #17a2b8;
+      background-color: #e0f7fa; 
+    }
+
+    .main-content {
+      flex-grow: 1;
+      display: flex;
+      overflow: hidden;
+      padding: 0 20px 20px;
+    }
+
+    .menu-section {
+      flex: 3;
+      padding-right: 15px;
+      overflow-y: auto;
+      height: calc(100vh - 120px); 
+    }
+
+    .cart-section {
+      flex: 2;
+      background: #f8f9fa;
+      border-left: 1px solid #dee2e6;
+      padding-left: 15px;
+      display: flex;
+      flex-direction: column;
+      height: calc(100vh - 120px); 
+    }
+
+    .menu-list {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+      gap: 28px 24px; 
+      justify-items: center;
+      padding-top: 20px; 
+    }
+
+    .menu-item {
+      width: 100%;
+      max-width: 180px;
+      background: #fff;
+      border-radius: 12px;
+      box-shadow: 0 4px 10px rgba(0, 0, 0, 0.07);
+      padding: 18px;
+      text-align: center;
+      position: relative;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      transition: transform 0.2s ease-in-out, box-shadow 0.2s ease-in-out;
+    }
+
+    .menu-item:hover {
+      transform: translateY(-5px);
+      box-shadow: 0 6px 20px rgba(0, 0, 0, 0.12);
+    }
+
+    .menu-item.soldout {
+      opacity: 0.5;
+      /* pointer-events: none; 삭제 -> 버튼 비활성화로 제어 */
+      background: #f8f9fa;
+    }
+     .menu-item.soldout .add-to-cart { 
+        background: #adb5bd !important;
+        cursor: not-allowed !important;
+    }
+
+    .menu-item .soldout-badge {
+      position: absolute;
+      top: 10px;
+      right: 10px;
+      background: #e74c3c;
+      color: #fff;
+      font-size: 0.75em;
+      padding: 4px 8px;
+      border-radius: 15px;
+      font-weight: bold;
+    }
+
+    .menu-img {
+      width: 110px;
+      height: 110px;
+      object-fit: cover;
+      border-radius: 15px;
+      background: #e9ecef;
+      margin-bottom: 15px;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+    }
+
+    .menu-name {
+      font-weight: 700;
+      font-size: 1.1em;
+      margin-bottom: 8px;
+      color: #2c3e50;
+    }
+
+    .menu-price {
+      color: #17a2b8;
+      font-size: 1.05em;
+      margin-bottom: 10px;
+      font-weight: 700;
+    }
+
+    .option-select {
+      margin-bottom: 15px;
+      padding: 8px 14px;
+      border: 1px solid #bdc3c7;
+      border-radius: 8px;
+      width: 85%;
+      font-size: 0.95em;
+      appearance: none;
+      background-image: url('data:image/svg+xml;charset=US-ASCII,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%22292.4%22%20height%3D%22292.4%22%3E%3Cpath%20fill%3D%22%2334495e%22%20d%3D%22M287%2069.4a17.6%2017.6%200%200%200-13-5.4H18.4c-5%200-9.3%201.8-12.9%205.4A17.6%2017.6%200%200%200%200%2082.2c0%205%201.8%209.3%205.4%2012.9l128%20127.9c3.6%203.6%207.8%205.4%2012.8%205.4s9.2-1.8%2012.8-5.4L287%2095c3.5-3.5%205.4-7.8%205.4-12.8%200-5-1.9-9.2-5.5-12.8z%22%2F%3E%3C%2Fsvg%3E');
+      background-repeat: no-repeat;
+      background-position: right 1rem center;
+      background-size: 0.65em auto;
+      color: #34495e;
+      cursor: pointer;
+    }
+
+    .option-select:focus {
+      border-color: #17a2b8;
+      outline: none;
+      box-shadow: 0 0 0 0.2rem rgba(23, 162, 184, 0.25);
+    }
+
+    button.add-to-cart {
+      background: #20c997; 
+      color: #fff;
+      border: none;
+      border-radius: 8px; 
+      padding: 12px 0; 
+      width: 90%; 
+      font-size: 1em;
+      cursor: pointer;
+      font-weight: 700; 
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: background-color 0.25s ease, transform 0.1s ease;
+      margin-top: auto; 
+    }
+
+    button.add-to-cart .fas {
+      margin-right: 8px;
+    }
+
+    button.add-to-cart:hover:not(:disabled) {
+      background: #1baa80; 
+    }
+
+    button.add-to-cart:active:not(:disabled) {
+      transform: scale(0.97); 
+    }
+
+    button.add-to-cart:disabled {
+      background: #adb5bd;
+      cursor: not-allowed;
+    }
+
+    .cart {
+      background: #fff;
+      border-radius: 15px;
+      padding: 25px;
+      box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+      display: flex;
+      flex-direction: column;
+      height: 100%;
+    }
+
+    .cart h3 {
+      margin: 0 0 20px 0;
+      font-size: 1.5em;
+      font-weight: 700;
+      color: #343a40;
+    }
+
+    .cart-list-wrapper {
+      flex-grow: 1;
+      overflow-y: auto;
+      margin-bottom: 20px;
+    }
+
+    .cart-list {
+      list-style: none;
+      padding: 0;
+      margin: 0;
+    }
+
+    .cart-list li {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin-bottom: 18px;
+      font-size: 1.1em;
+      border-bottom: 1px solid #e9ecef;
+      padding-bottom: 10px;
+    }
+
+    .cart-list li:last-child {
+      border-bottom: none;
+      margin-bottom: 0;
+    }
+
+    .cart-list .cart-name {
+      flex: 1;
+      color: #2c3e50;
+    }
+
+    .cart-list .cart-option {
+      color: #17a2b8;
+      font-size: 0.9em;
+      margin-left: 6px;
+      font-weight: 600;
+    }
+
+    .cart-list input[type="number"] {
+      width: 55px;
+      font-size: 1em;
+      padding: 8px 10px;
+      border-radius: 8px;
+      border: 1px solid #bdc3c7;
+      text-align: center;
+      color: #34495e;
+    }
+
+    .cart-list button {
+      background: #e74c3c;
+      color: #fff;
+      border: none;
+      border-radius: 8px;
+      padding: 8px 14px;
+      font-size: 0.9em;
+      cursor: pointer;
+      transition: background-color 0.25s ease;
+    }
+
+    .cart-list button:hover {
+      background: #c0392b;
+    }
+
+    .cart-summary {
+      margin-top: auto;
+      border-top: 1px solid #e9ecef;
+      padding-top: 15px;
+    }
+
+    .cart-total {
+      font-weight: 700;
+      font-size: 1.3em;
+      color: #2c3e50;
+      text-align: right;
+      margin-bottom: 15px;
+    }
+
+    .order-btn {
+      width: 100%;
+      background: #20c997;
+      color: #fff;
+      border: none;
+      border-radius: 10px;
+      padding: 16px;
+      font-size: 1.25em;
+      font-weight: 700;
+      cursor: pointer;
+      transition: background-color 0.25s ease, transform 0.1s ease;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .order-btn i {
+      margin-right: 10px;
+      font-size: 1.3em;
+    }
+
+    .order-btn:hover {
+      background: #1baa80;
+    }
+
+    .order-btn:active {
+      transform: scale(0.98);
+    }
+
+    .order-btn:disabled {
+      background: #adb5bd;
+      cursor: not-allowed;
+    }
+
+    .toast {
+      position: fixed;
+      bottom: 20px;
+      left: 50%;
+      transform: translateX(-50%) translateY(120%);
+      background: #343a40;
+      color: #fff;
+      padding: 14px 30px;
+      border-radius: 8px;
+      font-size: 1em;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+      z-index: 1000;
+      opacity: 0;
+      transition: opacity 0.3s ease, transform 0.3s ease;
+      pointer-events: none;
+    }
+
+    .toast.show {
+      opacity: 1;
+      transform: translateX(-50%) translateY(0);
+      pointer-events: auto;
+    }
+
+    @media (max-width: 992px) {
+      .menu-list {
+        grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+      }
+    }
+
+    @media (max-width: 768px) {
+      body { overflow-y: auto; }
+      .main-content { flex-direction: column; padding: 0; }
+      .menu-section, .cart-section { height: auto; overflow-y: visible; flex: none; padding: 15px; }
+      .cart-section { border-left: none; border-top: 1px solid #dee2e6; }
+      .category-tabs { top: 56px; padding: 8px 0; }
+      .header-title { font-size: 1.5em; }
+      .category-tabs button { padding: 8px 12px; font-size: 0.9em; }
+      .menu-list { grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); }
+    }
+
+    @media (max-width: 480px) {
+      .menu-list { grid-template-columns: repeat(auto-fill, minmax(130px, 1fr)); gap: 10px; }
+      .menu-item { padding: 12px; }
+      .menu-img { width: 80px; height: 80px; }
+    }
+
+    @media (max-width: 400px) { .menu-list { grid-template-columns: 1fr; } }
+  </style>
+</head>
+
+<body>
+  <header class="header">
+    <h2 class="header-title">키오스크 주문</h2>
+  </header>
+
+  <nav class="category-tabs" id="category-tabs">
+    <button data-category="recommended" class="active">추천</button>
+    <button data-category="ADE">ADE</button>
+    <button data-category="COFFEE">COFFEE</button>
+    <button data-category="NON COFFEE">NON COFFEE</button>
+    <button data-category="TEA">TEA</button>
+  </nav>
+
+  <div class="main-content">
+    <section class="menu-section">
+      <div class="menu-list" id="menu-list"></div>
+    </section>
+    <aside class="cart-section">
+      <div class="cart" id="cart">
+        <h3>장바구니</h3>
+        <div class="cart-list-wrapper">
+          <ul class="cart-list" id="cart-list"></ul>
+        </div>
+        <div class="cart-summary">
+          <div class="cart-total" id="cart-total"></div>
+          <button class="order-btn" id="order-btn" onclick="submitOrder()" disabled><i
+              class="fas fa-check-circle"></i> 주문하기</button>
+        </div>
+      </div>
+    </aside>
+  </div>
+
+  <div id="toast" class="toast"></div>
+
+  <script>
+    let allMenu = [];
+    let cart = [];
+    let currentCategory = "recommended"; 
+
+    async function initializeMenu() {
+      try {
+        let menuData = load('menu', null);
+        if (!menuData) { // 로컬스토리지에 메뉴가 없으면 menu.json에서 가져와 초기화
+          console.log("localStorage에 메뉴 없음. menu.json에서 초기화 시도.");
+          const res = await fetch('menu.json', { cache: "no-store" }); 
+          if (!res.ok) {
+            throw new Error(`HTTP error! status: ${res.status}, ${res.statusText} (menu.json)`);
+          }
+          menuData = await res.json();
+          if (!Array.isArray(menuData)) { // menu.json 형식이 배열이 아니면 오류
+              throw new Error('menu.json 형식이 올바르지 않습니다 (배열이 아님).');
+          }
+          save('menu', menuData); // 로컬스토리지에 저장
+          console.log("menu.json에서 메뉴 초기화 완료.");
+        }
+        allMenu = menuData;
+        filterAndRenderMenu();
+        renderCart();
+      } catch (error) {
+        console.error("메뉴 초기화 중 오류 발생:", error);
+        toast(`메뉴 로딩 오류: ${error.message}`); 
+        allMenu = []; // 오류 시 빈 배열로
+        filterAndRenderMenu(); 
+        renderCart();
+      }
+    }
+
+
+    function load(key, fallback) {
+      try {
+        const item = localStorage.getItem(key);
+        const parsedItem = item ? JSON.parse(item) : fallback;
+        if (key === 'menu' && parsedItem !== null && !Array.isArray(parsedItem)) { // null이 아닐 때만 배열 체크
+            console.warn(`localStorage의 '${key}' 데이터가 배열이 아닙니다. fallback을 사용합니다.`);
+            return Array.isArray(fallback) ? fallback : [];
+        }
+        return parsedItem;
+      } catch (e) {
+        console.error("Error loading from localStorage for key " + key + ":", e);
+        return Array.isArray(fallback) ? fallback : []; 
+      }
+    }
+
+    function save(key, value) {
+      try {
+        localStorage.setItem(key, JSON.stringify(value));
+      } catch (e) {
+        console.error("Error saving to localStorage for key " + key + ":", e);
+      }
+    }
+
+    function toast(msg) {
+      const t = document.getElementById('toast');
+      t.innerText = msg;
+      t.classList.add('show');
+      setTimeout(() => {
+        t.classList.remove('show');
+      }, 3000); 
+    }
+
+    function filterAndRenderMenu() {
+      allMenu = load('menu', []); // 항상 로컬스토리지에서 최신 메뉴 로드
+      let menuToDisplay;
+      if (currentCategory === "recommended") {
+        menuToDisplay = allMenu.filter(item => item.recommended === true);
+      } else {
+        menuToDisplay = allMenu.filter(item => item.category === currentCategory);
+      }
+      renderMenu(menuToDisplay);
+    }
+
+    function renderMenu(menuToRender) {
+      const menuList = document.getElementById('menu-list');
+      menuList.innerHTML = '';
+      if (!Array.isArray(menuToRender) || menuToRender.length === 0) { 
+        menuList.innerHTML = `<p style="text-align:center; color:#7f8c8d; width:100%; padding-top: 20px;">선택하신 카테고리에 메뉴가 없습니다.</p>`;
+        return;
+      }
+
+      menuToRender.forEach(item => {
+        const originalItem = allMenu.find(m => m.id === item.id); // 원본 메뉴 데이터(품절상태 등)
+        const soldOut = originalItem ? originalItem.soldOut : item.soldOut; // 원본이 있으면 원본의 soldOut, 없으면 현재 item의 soldOut
+
+        const div = document.createElement('div');
+        div.className = 'menu-item' + (soldOut ? ' soldout' : ''); 
+        
+        let imgSrc = '';
+        if (item.image && item.image.startsWith('data:')) imgSrc = item.image;
+        else if (item.image && (item.image.startsWith('http://') || item.image.startsWith('https://'))) imgSrc = item.image;
+        else if (item.image) imgSrc = 'images/' + item.image;
+
+        let optionSelectHTML = '';
+        if (item.options && item.options.length > 1) {
+          optionSelectHTML = `<select class="option-select" data-item-id="${item.id}">
+                        ${item.options.map(opt => `<option value="${opt}">${opt}</option>`).join('')}
+                    </select>`;
+        }
+
+        div.innerHTML = `
+            <img class="menu-img" src="${imgSrc || 'https://via.placeholder.com/110x110?text=No+Image'}" alt="${item.name}" onerror="this.src='https://via.placeholder.com/110x110?text=No+Image';">
+            <div class="menu-name">${item.name}</div>
+            <div class="menu-price">₩${item.price.toLocaleString()}</div>
+            ${optionSelectHTML}
+            <button class="add-to-cart" ${soldOut ? 'disabled' : ''} data-item-id="${item.id}"><i class="fas fa-cart-plus"></i> 담기</button>
+            ${(soldOut) ? `<div class="soldout-badge">품절</div>` : ''}
+        `;
+
+        div.querySelector('button.add-to-cart')?.addEventListener('click', (e) => {
+          const itemId = parseInt(e.currentTarget.dataset.itemId);
+          const menuItemFromAllMenu = allMenu.find(m => m.id === itemId); 
+          if (!menuItemFromAllMenu || menuItemFromAllMenu.soldOut) { 
+              toast('선택하신 상품은 현재 품절입니다.');
+              return;
+          }
+
+          let selectedOption = null;
+          if (menuItemFromAllMenu.options && menuItemFromAllMenu.options.length > 1) {
+            selectedOption = div.querySelector(`.option-select[data-item-id="${itemId}"]`)?.value;
+          } else if (menuItemFromAllMenu.options && menuItemFromAllMenu.options.length === 1) {
+            selectedOption = menuItemFromAllMenu.options[0];
+          }
+
+          let foundInCart = cart.find(c => c.id === itemId && c.option === selectedOption);
+
+          if (foundInCart) {
+            foundInCart.qty++;
+            toast(`${menuItemFromAllMenu.name}${selectedOption ? ` (${selectedOption})` : ''} 수량이 추가되었습니다.`);
+          } else {
+            cart.push({
+              id: itemId, name: menuItemFromAllMenu.name, price: menuItemFromAllMenu.price,
+              qty: 1, option: selectedOption
+            });
+            toast(`${menuItemFromAllMenu.name}${selectedOption ? ` (${selectedOption})` : ''}이(가) 장바구니에 담겼습니다.`);
+          }
+          renderCart();
+        });
+        menuList.appendChild(div);
+      });
+    }
+
+    function renderCart() {
+      const cartListWrapper = document.querySelector('.cart-list-wrapper');
+      let cartListEl = document.getElementById('cart-list'); // 변수명 변경
+
+      if (!cartListEl && cartListWrapper) { 
+          cartListWrapper.innerHTML = '<ul class="cart-list" id="cart-list"></ul>';
+          cartListEl = document.getElementById('cart-list'); // 새로 생성된 ul 참조
+      }
+      if (!cartListEl) return; // ul 요소를 찾지 못하면 중단
+      cartListEl.innerHTML = '';
+
+      let total = 0;
+
+      if (cart.length === 0) {
+        cartListWrapper.innerHTML = '<p style="text-align:center; color:#7f8c8d; padding-top:20px;">장바구니가 비어있습니다.</p>';
+        document.getElementById('cart-total').innerText = '';
+        document.getElementById('order-btn').disabled = true;
+        return;
+      } else {
+        // 장바구니 아이템 있을 시, wrapper 내 p 태그가 있다면 ul로 교체 (renderMenu와 유사한 처리)
+        if (cartListWrapper.querySelector('p')) {
+            cartListWrapper.innerHTML = '<ul class="cart-list" id="cart-list"></ul>';
+            cartListEl = document.getElementById('cart-list'); // 새로 생성된 ul 참조
+        }
+      }
+
+      cart.forEach((ci, idx) => {
+        const li = document.createElement('li');
+        li.innerHTML = `
+            <span class="cart-name">${ci.name}</span>
+            ${ci.option ? `<span class="cart-option">[${ci.option}]</span>` : ''}
+            <input type="number" min="1" value="${ci.qty}" data-idx="${idx}">
+            <span>₩${(ci.price * ci.qty).toLocaleString()}</span>
+            <button title="삭제" data-idx="${idx}"><i class="fas fa-trash-alt"></i></button>
+        `;
+
+        li.querySelector('input[type="number"]').addEventListener('change', e => {
+          let val = parseInt(e.target.value);
+          const itemIndex = parseInt(e.target.dataset.idx);
+          if (!cart[itemIndex]) {
+            renderCart(); 
+            return;
+          }
+          
+          if (isNaN(val) || val < 1) val = 1; 
+          
+          cart[itemIndex].qty = val;
+          renderCart();
+        });
+
+        li.querySelector('button').addEventListener('click', e => {
+          const itemIndex = parseInt(e.currentTarget.dataset.idx);
+          const removedItem = cart.splice(itemIndex, 1)[0];
+          renderCart();
+          toast(`${removedItem.name}${removedItem.option ? ` (${removedItem.option})` : ''}이(가) 삭제되었습니다.`);
+        });
+        cartListEl.appendChild(li); // 올바른 cartListEl 참조
+        total += ci.price * ci.qty;
+      });
+
+      document.getElementById('cart-total').innerText = cart.length ? `총 주문 금액: ₩${total.toLocaleString()}` : '';
+      document.getElementById('order-btn').disabled = cart.length === 0;
+    }
+
+    function submitOrder() {
+      if (cart.length === 0) {
+        toast("장바구니가 비어있습니다.");
+        return;
+      }
+
+      allMenu = load('menu', []); 
+      for (let ci of cart) {
+        let m = allMenu.find(m => m.id === ci.id);
+        if (!m) {
+          toast(`${ci.name} 메뉴를 현재 주문할 수 없습니다.`);
+          // 카트에서 해당 아이템 제거 또는 사용자에게 알림 후 주문 중단
+          cart = cart.filter(cartItem => cartItem.id !== ci.id); // 예: 카트에서 제거
+          renderCart();
+          return;
+        }
+        if (m.soldOut) {
+          toast(`${ci.name}은(는) 현재 품절입니다. 장바구니에서 확인해주세요.`);
+          // 카트에서 해당 아이템 제거 또는 사용자에게 알림 후 주문 중단
+          // 여기서는 품절 상품이 카트에 담겨있으면 주문을 막고, 카트 렌더링을 통해 사용자에게 인지시킴
+          renderCart(); // 카트에 품절 상품이 있다면 사용자에게 보여주기 위함 (선택적)
+          return;
+        }
+      }
+
+      let orders = load('orders', []);
+      let orderItems = cart.map(ci => ({
+        menuId: ci.id, name: ci.name, qty: ci.qty, price: ci.price, option: ci.option
+      }));
+      orders.push({
+        id: Date.now(), items: orderItems,
+        time: new Date().toLocaleTimeString('ko-KR', { hour: '2-digit', minute: '2-digit', second: '2-digit' }),
+        status: "wait"
+      });
+      
+      save('orders', orders);
+      // 재고 차감 로직이 없으므로, 메뉴 데이터는 변경되지 않음 (품절은 카운터에서만 관리)
+      
+      cart = []; 
+      
+      // 주문 완료 후 카트는 비워지고, 메뉴 목록은 그대로 유지 (품절 상태는 storage 이벤트로 동기화)
+      filterAndRenderMenu(); 
+      renderCart();         
+
+      toast("주문이 성공적으로 완료되었습니다!");
+      window.dispatchEvent(new Event('storage')); 
+    }
+
+    const categoryTabs = document.getElementById('category-tabs');
+
+    categoryTabs.addEventListener('click', (e) => {
+      if (e.target.tagName === 'BUTTON') {
+        [...categoryTabs.children].forEach(btn => btn.classList.remove('active'));
+        e.target.classList.add('active');
+        currentCategory = e.target.dataset.category;
+        filterAndRenderMenu();
+      }
+    });
+
+    // 초기화
+    initializeMenu(); // 페이지 로드 시 메뉴 초기화
+
+    // 주기적 동기화는 제거 (localStorage와 storage 이벤트에 의존)
+    // setInterval(() => {
+    //   syncMenu(); // 이 부분은 storage 이벤트로 대체되거나, 필요시 주기를 매우 길게 설정
+    // }, 30000); // 예: 30초 (매우 긴 간격) 또는 아예 제거
+
+    window.addEventListener('storage', (event) => {
+      // 다른 탭/창에서 localStorage의 'menu' 또는 'orders'가 변경되었을 때만 반응
+      if (event.key === 'menu') {
+        console.log("Storage event: 'menu' key changed. Reloading menu.");
+        allMenu = load('menu', []); // 변경된 localStorage의 menu 데이터를 로드
+        filterAndRenderMenu(); // 현재 카테고리 유지하며 메뉴 다시 그리기
+        renderCart(); // 카트도 품절 상태 변경에 따라 업데이트 필요할 수 있음
+      } else if (event.key === 'orders') {
+        // 주문 목록은 키오스크에서 직접 표시하지 않으므로, 특별한 동작 없음
+        // 필요하다면 여기서도 특정 UI 업데이트 가능
+      }
+    });
+  </script>
+</body>
+</html>

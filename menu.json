@@ -1,0 +1,140 @@
+[
+  {
+    "id": 1,
+    "name": "레몬에이드",
+    "price": 1500,
+    "soldOut": false,
+    "image": "https://i.ibb.co/cWVJHXv/1-500.jpg",
+    "category": "ADE",
+    "options": ["ICE"],
+    "recommended": true
+  },
+  {
+    "id": 2,
+    "name": "샤인머스캣에이드",
+    "price": 1500,
+    "soldOut": false,
+    "image": "https://i.ibb.co/r27bFSpz/1-500.jpg",
+    "category": "ADE",
+    "options": ["ICE"],
+    "recommended": false
+  },
+  {
+    "id": 3,
+    "name": "애플망고에이드",
+    "price": 1500,
+    "soldOut": false,
+    "image": "https://i.ibb.co/4RgTMWhL/1-500.jpg",
+    "category": "ADE",
+    "options": ["ICE"],
+    "recommended": true
+  },
+  {
+    "id": 4,
+    "name": "오미자에이드",
+    "price": 1500,
+    "soldOut": false,
+    "image": "https://i.ibb.co/VYNYjgt9/1-500.jpg",
+    "category": "ADE",
+    "options": ["ICE"],
+    "recommended": false
+  },
+  {
+    "id": 5,
+    "name": "자몽에이드",
+    "price": 1500,
+    "soldOut": false,
+    "image": "https://i.ibb.co/LhC3kmdq/1-500.jpg",
+    "category": "ADE",
+    "options": ["ICE"],
+    "recommended": false
+  },
+  {
+    "id": 6,
+    "name": "바닐라라떼",
+    "price": 1500,
+    "soldOut": false,
+    "image": "https://i.ibb.co/KcTTywcb/1-500.jpg",
+    "category": "COFFEE",
+    "options": ["HOT", "ICE"],
+    "recommended": true
+  },
+  {
+    "id": 7,
+    "name": "아메리카노",
+    "price": 1000,
+    "soldOut": false,
+    "image": "https://i.ibb.co/yTB9Kw5/1-000.jpg",
+    "category": "COFFEE",
+    "options": ["HOT", "ICE"],
+    "recommended": true
+  },
+  {
+    "id": 8,
+    "name": "아인슈페너",
+    "soldOut": false,
+    "image": "https://i.ibb.co/Rp3VJHQQ/1-500.jpg",
+    "category": "COFFEE",
+    "options": ["HOT", "ICE"],
+    "recommended": false
+  },
+  {
+    "id": 9,
+    "name": "연유라떼",
+    "price": 1500,
+    "soldOut": false,
+    "image": "https://i.ibb.co/DDJzbXHQ/1-500.jpg",
+    "category": "COFFEE",
+    "options": ["HOT", "ICE"],
+    "recommended": false
+  },
+  {
+    "id": 10,
+    "name": "카페라떼",
+    "price": 1500,
+    "soldOut": false,
+    "image": "https://i.ibb.co/DDvRZvRW/1-500.jpg",
+    "category": "COFFEE",
+    "options": ["HOT", "ICE"],
+    "recommended": false
+  },
+  {
+    "id": 11,
+    "name": "크림라떼",
+    "price": 2000,
+    "soldOut": false,
+    "image": "https://i.ibb.co/r2HZhPyq/2-000.jpg",
+    "category": "COFFEE",
+    "options": ["HOT", "ICE"],
+    "recommended": true
+  },
+  {
+    "id": 12,
+    "name": "밀크티",
+    "price": 1500,
+    "soldOut": false,
+    "image": "https://i.ibb.co/6cNb7Ljd/1-500.jpg",
+    "category": "NON COFFEE",
+    "recommended": true
+  },
+  {
+    "id": 13,
+    "name": "루이보스애플레몬티",
+    "price": 1000,
+    "soldOut": false,
+    "image": "https://i.ibb.co/d4pRvdzM/1-000.jpg",
+    "category": "TEA",
+    "options": ["HOT", "ICE"],
+    "recommended": false
+  },
+  {
+    "id": 14,
+    "name": "얼그레이티",
+    "price": 1000,
+    "soldOut": false,
+    "image": "https://i.ibb.co/7JBrxGTB/1-000.jpg",
+    "category": "TEA",
+    "options": ["HOT", "ICE"],
+    "recommended": true
+  }
+]

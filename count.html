@@ -1,0 +1,667 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <title>카운터 주문 현황 및 관리</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css"
+    crossorigin="anonymous" referrerpolicy="no-referrer" />
+  <style>
+    html, body {
+      margin: 0;
+      padding: 0;
+      background: #e9ecef;
+      font-family: 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+      color: #343a40;
+    }
+
+    .container {
+      max-width: 960px;
+      margin: 30px auto;
+      background: #fff;
+      border-radius: 20px;
+      box-shadow: 0 8px 25px rgba(0, 0, 0, 0.1);
+      padding: 30px;
+    }
+
+    h2, h3 {
+      color: #343a40;
+      font-weight: 600;
+    }
+    h2 { margin-top: 0; font-size: 2em; text-align: center; margin-bottom: 30px; }
+    h3 { font-size: 1.5em; margin-bottom: 20px; border-bottom: 1px solid #dee2e6; padding-bottom: 10px;}
+
+
+    .order-list { list-style: none; padding: 0; margin: 0 0 30px 0; }
+    .order-list li {
+      background: #f8f9fa;
+      border: 1px solid #dee2e6;
+      border-radius: 10px;
+      padding: 20px;
+      margin-bottom: 15px;
+      box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+    }
+    .order-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; }
+    .order-header b { font-size: 1.1em; }
+    .order-status { font-size: 0.9em; font-weight: bold; padding: 5px 12px; border-radius: 20px; }
+    .status-wait { background: #ffc107; color: #343a40; }
+    .status-done { background: #28a745; color: #fff; }
+    .order-actions button {
+      font-size: 0.9em;
+      padding: 6px 12px;
+      border-radius: 6px;
+      border: none;
+      cursor: pointer;
+      transition: background-color 0.2s ease;
+    }
+    .order-actions button:first-child { background-color: #17a2b8; color:white; }
+    .order-actions button:first-child:hover { background-color: #138496; }
+    .order-actions button:last-child { background-color: #dc3545; color:white; margin-left: 8px; }
+    .order-actions button:last-child:hover { background-color: #c82333; }
+    .order-list ul { margin: 0; padding-left: 20px; list-style-type: disc; }
+    .order-list ul li { font-size: 0.95em; color: #495057; padding: 5px 0; border: none; box-shadow: none; background: none; margin-bottom: 0;}
+
+    .action-button {
+      background: #17a2b8; 
+      color: #fff;
+      border: none;
+      border-radius: 8px;
+      padding: 10px 20px;
+      margin: 5px;
+      cursor: pointer;
+      font-size: 1em;
+      font-weight: 500;
+      transition: background-color 0.2s ease;
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .action-button:hover { background: #138496; }
+    .action-button.print-btn { background: #6f42c1; }
+    .action-button.print-btn:hover { background: #5a32a3; }
+    .action-button.export-btn { background: #28a745; }
+    .action-button.export-btn:hover { background: #218838; }
+    .action-button.reset-btn { background: #dc3545; }
+    .action-button.reset-btn:hover { background: #c82333; }
+    .action-button.close-btn { background: #6c757d; }
+    .action-button.close-btn:hover { background: #5a6268; }
+
+
+    .top-actions { margin-bottom: 30px; text-align: center; }
+
+    .admin-section { margin-top: 30px; border-top: 1px solid #dee2e6; padding-top: 30px; }
+    .admin-controls { margin-bottom: 20px; text-align: right; }
+
+    #admin-menu-list {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); 
+        gap: 20px;
+    }
+    .admin-menu-item-card {
+        background: #f8f9fa;
+        border: 1px solid #dee2e6;
+        border-radius: 10px;
+        padding: 20px;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+    }
+    .admin-menu-item-card .menu-img-thumb {
+      width: 60px; height: 60px; object-fit: cover; border-radius: 8px; background: #e9ecef; margin-bottom: 10px;
+      display: block; margin-left: auto; margin-right: auto; 
+    }
+    .admin-menu-item-card label {
+        display: block;
+        font-size: 0.9em;
+        color: #495057;
+        margin-bottom: 5px;
+        font-weight: 500;
+    }
+    .admin-menu-item-card input[type="text"],
+    .admin-menu-item-card input[type="number"],
+    .admin-menu-item-card input[type="file"] {
+        width: calc(100% - 16px); 
+        padding: 8px;
+        margin-bottom: 10px;
+        border: 1px solid #ced4da;
+        border-radius: 6px;
+        font-size: 0.95em;
+    }
+    .admin-menu-item-card input[type="file"] {
+        padding: 5px; 
+    }
+    .admin-menu-item-card .checkbox-group {
+        display: flex;
+        align-items: center;
+        gap: 5px;
+        margin-bottom: 10px;
+    }
+    .admin-menu-item-card .checkbox-group input[type="checkbox"] {
+        width: auto; margin-right: 5px; transform: scale(1.1);
+    }
+    .admin-menu-item-card .action-buttons { text-align: right; margin-top: 15px; }
+    .admin-menu-item-card .action-buttons button {
+        padding: 8px 15px;
+        font-size: 0.9em;
+        margin-left: 8px;
+    }
+
+    .add-menu-section {
+        margin-top: 30px;
+        padding-top: 20px;
+        border-top: 1px solid #dee2e6;
+    }
+    .add-row {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); 
+        gap: 15px;
+        align-items: center;
+        margin-bottom: 15px;
+    }
+    .add-row label {
+        font-size: 0.9em;
+        color: #495057;
+        font-weight: 500;
+    }
+    .add-row input[type="text"],
+    .add-row input[type="number"], /* 가격 입력 필드는 유지 */
+    .add-row input[type="file"] {
+        width: calc(100% - 16px);
+        padding: 8px;
+        border: 1px solid #ced4da;
+        border-radius: 6px;
+        font-size: 0.95em;
+    }
+    .add-row .checkbox-group { display: flex; align-items: center; gap: 5px; }
+    .add-row .checkbox-group input[type="checkbox"] { width: auto; transform: scale(1.1); margin-right:5px;}
+    .add-row-actions { text-align: right; margin-top: 20px; }
+
+    .toast {
+      position: fixed; bottom: 30px; left: 50%; transform: translateX(-50%) translateY(120%);
+      background: #343a40; color: #fff; padding: 15px 30px; border-radius: 8px;
+      font-size: 1em; box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2); z-index: 1000;
+      opacity: 0; transition: opacity 0.3s ease, transform 0.3s ease; pointer-events: none;
+    }
+    .toast.show { opacity: 1; transform: translateX(-50%) translateY(0); pointer-events: auto; }
+
+    @media (max-width: 768px) {
+      .container { padding: 20px; }
+      h2 { font-size: 1.6em; }
+      h3 { font-size: 1.3em; }
+      .top-actions { display: flex; flex-direction: column; gap: 10px; }
+      .action-button { width: 100%; margin-left: 0; margin-right: 0; }
+      #admin-menu-list { grid-template-columns: 1fr; } 
+      .add-row { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h2>카운터 주문 현황</h2>
+    <ul class="order-list" id="order-list"></ul>
+
+    <div class="top-actions">
+      <button class="action-button" id="manage-toggle-btn" onclick="openAdmin()"><i class="fas fa-cog"></i> 관리</button>
+      <button class="action-button print-btn" onclick="printOrders()"><i class="fas fa-print"></i> 인쇄</button>
+      <button class="action-button export-btn" onclick="exportOrders()"><i class="fas fa-file-csv"></i> CSV 다운로드</button>
+    </div>
+
+    <div id="admin-section" class="admin-section" style="display:none;">
+      <h3><i class="fas fa-edit"></i> 메뉴 관리 (품절 ON/OFF)</h3>
+      <div class="admin-controls">
+        <button class="action-button reset-btn" onclick="resetOrders()"><i class="fas fa-trash-restore"></i> 주문 전체 리셋</button>
+        <button class="action-button close-btn" onclick="closeAdmin()"><i class="fas fa-times-circle"></i> 닫기</button>
+      </div>
+
+      <div id="admin-menu-list">
+        <!-- 메뉴 수정 아이템들이 여기에 동적으로 추가됩니다 -->
+      </div>
+
+      <div class="add-menu-section">
+        <h3><i class="fas fa-plus-circle"></i> 새 메뉴 추가</h3>
+        <div class="add-row">
+            <div>
+                <label for="add-name">메뉴명</label>
+                <input type="text" id="add-name" placeholder="예: 딸기 스무디">
+            </div>
+            <div>
+                <label for="add-price">가격</label>
+                <input type="number" id="add-price" placeholder="예: 3500" min="0">
+            </div>
+            <!-- 재고 입력 필드 제거 -->
+            <div>
+                <label for="add-image-file">이미지 파일</label>
+                <input type="file" id="add-image-file" accept="image/*">
+            </div>
+             <div>
+                <label for="add-image-url">또는 이미지 URL</label>
+                <input type="text" id="add-image-url" placeholder="https://example.com/image.jpg">
+            </div>
+             <div>
+                <label for="add-category">카테고리</label>
+                <input type="text" id="add-category" placeholder="예: ADE, COFFEE">
+            </div>
+            <div>
+                <label for="add-options">옵션 (쉼표로 구분)</label>
+                <input type="text" id="add-options" placeholder="예: HOT,ICE 또는 비워두기">
+            </div>
+        </div>
+        <div class="add-row" style="margin-top: 10px;">
+            <div class="checkbox-group">
+                <input type="checkbox" id="add-soldout">
+                <label for="add-soldout">품절</label>
+            </div>
+            <div class="checkbox-group">
+                <input type="checkbox" id="add-recommended">
+                <label for="add-recommended">추천 메뉴</label>
+            </div>
+        </div>
+        <div class="add-row-actions">
+            <button class="action-button" onclick="addMenu()"><i class="fas fa-plus"></i> 메뉴 추가</button>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div id="toast" class="toast"></div>
+
+  <script>
+    const defaultMenuFallback = [ 
+      { id: 1, name: "데이터 로드 실패", price: 0, soldOut: true, image: "", category: "ERROR", options: [], recommended: false }
+    ];
+
+    function load(key, fallback) {
+      try {
+        const item = localStorage.getItem(key);
+        if (key === 'menu' && !item) {
+            return fallback; 
+        }
+        return item ? JSON.parse(item) : fallback;
+      } catch(e) {
+        console.error("Error loading from localStorage for key " + key + ":", e);
+        return fallback;
+      }
+    }
+    function save(key, value) {
+        try {
+            localStorage.setItem(key, JSON.stringify(value));
+        } catch (e) {
+            console.error("Error saving to localStorage for key " + key + ":", e);
+            toast("데이터 저장 중 오류 발생!");
+        }
+    }
+
+    let menu = []; 
+    let orders = load('orders', []);
+
+    if (orders.length && typeof orders[0].status === 'undefined') {
+      orders = orders.map(o => ({...o, status: "wait"}));
+      save('orders', orders);
+    }
+
+    function toast(msg) {
+      const t = document.getElementById('toast');
+      t.innerText = msg;
+      t.classList.add('show');
+      setTimeout(() => { t.classList.remove('show'); }, 3000);
+    }
+
+    function renderOrders() {
+      orders = load('orders', []); 
+      orders.sort((a, b) => b.id - a.id); 
+
+      const orderList = document.getElementById('order-list');
+      if (orders.length === 0) {
+        orderList.innerHTML = '<li style="text-align:center; color:#6c757d; padding:20px 0; border:none; box-shadow:none; background:none;">주문 내역이 없습니다.</li>';
+        return;
+      }
+      orderList.innerHTML = '';
+      orders.forEach((order) => {
+        const li = document.createElement('li');
+        li.innerHTML = `
+          <div class="order-header">
+            <b>주문 #${order.id} (시간: ${order.time})</b>
+            <span class="order-status status-${order.status}">${order.status === "wait" ? "대기중" : "완료됨"}</span>
+          </div>
+          <ul>
+            ${order.items.map(it => `<li>${it.name}${it.option ? ` <small>(${it.option})</small>` : ''} x ${it.qty}개 - ₩${(it.price * it.qty).toLocaleString()}</li>`).join('')}
+          </ul>
+          <div class="order-actions" style="text-align:right; margin-top:10px;">
+            ${order.status === "wait" ? `<button onclick="setOrderDone(${order.id})"><i class="fas fa-check"></i> 완료 처리</button>` : ""}
+            <button onclick="removeOrder(${order.id})"><i class="fas fa-trash-alt"></i> 주문 삭제</button>
+          </div>
+        `;
+        orderList.appendChild(li);
+      });
+    }
+
+    function setOrderDone(id) {
+      orders = load('orders', []);
+      let idx = orders.findIndex(o => o.id === id);
+      if (idx > -1) {
+        orders[idx].status = "done";
+        save('orders', orders);
+        renderOrders();
+        toast(`주문 #${id}이(가) 완료 처리되었습니다.`);
+      }
+    }
+
+    function removeOrder(id) {
+      if (!confirm(`주문 #${id}을(를) 삭제하시겠습니까?`)) return;
+      orders = load('orders', []);
+      orders = orders.filter(o => o.id !== id);
+      save('orders', orders);
+      renderOrders();
+      toast(`주문 #${id}이(가) 삭제되었습니다.`);
+    }
+
+    let adminOpened = false;
+    function openAdmin() {
+      syncMenuFromJson().then(() => { 
+          if (adminOpened) {
+            document.getElementById('admin-section').style.display = 'block';
+            document.getElementById('manage-toggle-btn').style.display = 'none';
+            renderAdminMenu();
+            return;
+          }
+          let pw = prompt("관리자 비밀번호를 입력하세요:", "1234");
+          if (pw === null) return;
+          if (pw === "1234") { 
+            adminOpened = true;
+            document.getElementById('admin-section').style.display = 'block';
+            document.getElementById('manage-toggle-btn').style.display = 'none';
+            renderAdminMenu();
+          } else {
+            toast("비밀번호가 틀렸습니다!");
+          }
+      }).catch(error => {
+          toast("메뉴 동기화 실패: " + error.message);
+      });
+    }
+    function closeAdmin() {
+      document.getElementById('admin-section').style.display = 'none';
+      document.getElementById('manage-toggle-btn').style.display = 'inline-flex';
+    }
+
+    function resetOrders() {
+      if (!confirm('모든 주문 내역을 삭제하시겠습니까? 이 작업은 되돌릴 수 없습니다.')) return;
+      orders = [];
+      save('orders', orders);
+      renderOrders();
+      toast("모든 주문 내역이 삭제되었습니다.");
+      window.dispatchEvent(new Event('storage')); 
+    }
+
+    function renderAdminMenu() {
+      menu = load('menu', defaultMenuFallback); 
+      const adminMenuList = document.getElementById('admin-menu-list');
+      adminMenuList.innerHTML = ''; 
+      if (!Array.isArray(menu)) {
+          toast("메뉴 데이터 형식이 올바르지 않습니다.");
+          console.error("Menu data is not an array:", menu);
+          menu = []; 
+      }
+
+      menu.forEach((item) => {
+        const div = document.createElement('div');
+        div.className = 'admin-menu-item-card';
+        let imgSrc = '';
+        if(item.image && item.image.startsWith('data:')) imgSrc = item.image;
+        else if(item.image && (item.image.startsWith('http://') || item.image.startsWith('https://'))) imgSrc = item.image;
+        else if(item.image) imgSrc = 'images/' + item.image;
+
+        div.innerHTML = `
+            <img class="menu-img-thumb" src="${imgSrc||'https://via.placeholder.com/60x60?text=Img'}" onerror="this.style.display='none';">
+            <div><label for="name-${item.id}">메뉴명</label><input type="text" value="${item.name || ''}" id="name-${item.id}"></div>
+            <div><label for="price-${item.id}">가격</label><input type="number" min="0" value="${item.price || 0}" id="price-${item.id}"></div>
+            <div><label for="category-${item.id}">카테고리</label><input type="text" value="${item.category || 'ETC'}" id="category-${item.id}"></div>
+            <div><label for="options-${item.id}">옵션 (쉼표로 구분)</label><input type="text" value="${(item.options || []).join(',')}" id="options-${item.id}"></div>
+            <div class="checkbox-group">
+                <input type="checkbox" id="soldout-${item.id}" ${item.soldOut ? 'checked' : ''}>
+                <label for="soldout-${item.id}">품절</label>
+            </div>
+            <div class="checkbox-group">
+                <input type="checkbox" id="recommended-${item.id}" ${item.recommended ? 'checked' : ''}>
+                <label for="recommended-${item.id}">추천</label>
+            </div>
+            <div>
+                <label for="img-file-${item.id}">이미지 파일 변경</label>
+                <input type="file" class="img-upload" id="img-file-${item.id}" accept="image/*">
+            </div>
+            <div>
+                <label for="img-url-${item.id}">또는 이미지 URL</label>
+                <input type="text" class="img-url-input" id="img-url-${item.id}" placeholder="https://..." value="${(item.image && (item.image.startsWith('http') || item.image.startsWith('data:'))) ? item.image : ''}">
+            </div>
+            <div class="action-buttons">
+                <button class="action-button save-btn" onclick="saveMenu(${item.id})"><i class="fas fa-save"></i> 저장</button>
+                <button class="action-button remove-btn" onclick="removeMenu(${item.id})"><i class="fas fa-trash"></i> 삭제</button>
+            </div>
+        `;
+        // 재고(stock) 관련 input 필드 제거
+
+        div.querySelector(`#img-file-${item.id}`).addEventListener('change', function(e){
+          let file = e.target.files[0];
+          if(file){
+            let reader = new FileReader();
+            reader.onload = function(ev){
+              div.querySelector('.menu-img-thumb').src = ev.target.result;
+              document.getElementById(`img-url-${item.id}`).value = ''; 
+            }
+            reader.readAsDataURL(file);
+          }
+        });
+        div.querySelector(`#img-url-${item.id}`).addEventListener('input', function(e){
+             const urlValue = e.target.value.trim();
+             if (urlValue) {
+                 div.querySelector('.menu-img-thumb').src = urlValue;
+                 document.getElementById(`img-file-${item.id}`).value = '';
+             }
+        });
+        adminMenuList.appendChild(div);
+      });
+    }
+
+    async function saveMenu(id) { 
+      menu = load('menu', defaultMenuFallback);
+      let item = menu.find(m => m.id === id);
+      if (!item) {
+          toast("오류: 해당 메뉴를 찾을 수 없습니다.");
+          return;
+      }
+
+      item.name = document.getElementById(`name-${id}`).value.trim() || item.name;
+      item.price = parseInt(document.getElementById(`price-${id}`).value) || 0;
+      // item.stock 로직 제거
+      item.category = document.getElementById(`category-${id}`).value.trim().toUpperCase() || 'ETC';
+      const optionsString = document.getElementById(`options-${id}`).value.trim();
+      item.options = optionsString ? optionsString.split(',').map(opt => opt.trim()).filter(opt => opt) : [];
+      item.soldOut = document.getElementById(`soldout-${id}`).checked;
+      item.recommended = document.getElementById(`recommended-${id}`).checked;
+
+      const fileInput = document.getElementById(`img-file-${id}`);
+      const urlInput = document.getElementById(`img-url-${id}`).value.trim();
+
+      if (fileInput.files.length > 0) {
+        try {
+            const base64Image = await readFileAsBase64(fileInput.files[0]);
+            item.image = base64Image;
+        } catch (error) {
+            toast("이미지 파일 처리 중 오류 발생");
+            console.error("Error reading file for menu save:", error);
+        }
+      } else if (urlInput) {
+        item.image = urlInput;
+      } else if (!urlInput && item.image && !item.image.startsWith('data:') && !item.image.startsWith('http')) {
+        // 이미지 변경 없음 (기존 파일명 유지)
+      } else if (!urlInput && fileInput.value === ''){
+         // 이미지 변경 없음 (기존 Base64 또는 빈 값 유지)
+      }
+
+
+      save('menu', menu);
+      renderAdminMenu();
+      toast(`메뉴 "${item.name}" 정보가 저장되었습니다.`);
+      window.dispatchEvent(new Event('storage'));
+    }
+
+    function readFileAsBase64(file) {
+        return new Promise((resolve, reject) => {
+            const reader = new FileReader();
+            reader.onload = () => resolve(reader.result);
+            reader.onerror = error => reject(error);
+            reader.readAsDataURL(file);
+        });
+    }
+
+
+    function removeMenu(id) {
+      menu = load('menu', defaultMenuFallback);
+      const itemToRemove = menu.find(m => m.id === id);
+      if (!itemToRemove) {
+          toast("오류: 해당 메뉴를 찾을 수 없습니다.");
+          return;
+      }
+      if (!confirm(`메뉴 "${itemToRemove.name}"을(를) 삭제하시겠습니까?`)) return;
+
+      menu = menu.filter(m => m.id !== id);
+      save('menu', menu);
+      renderAdminMenu();
+      toast(`메뉴 "${itemToRemove.name}"이(가) 삭제되었습니다.`);
+      window.dispatchEvent(new Event('storage'));
+    }
+
+    async function addMenu() { 
+      let name = document.getElementById('add-name').value.trim();
+      let price = parseInt(document.getElementById('add-price').value) || 0;
+      // let stock 로직 제거
+      let category = document.getElementById('add-category').value.trim().toUpperCase() || 'ETC';
+      const optionsString = document.getElementById('add-options').value.trim();
+      let options = optionsString ? optionsString.split(',').map(opt => opt.trim()).filter(opt => opt) : [];
+      let imgFileInput = document.getElementById('add-image-file');
+      let imgUrl = document.getElementById('add-image-url').value.trim();
+      let soldOut = document.getElementById('add-soldout').checked;
+      let recommended = document.getElementById('add-recommended').checked;
+
+      if (!name || price <= 0) {
+        toast("메뉴명과 가격을 정확히 입력하세요.");
+        return;
+      }
+      menu = load('menu', defaultMenuFallback);
+      let newId = (menu.length ? Math.max(0, ...menu.map(m=>m.id)) : 0) + 1; 
+      // stock 필드 없이 newMenu 객체 생성
+      let newMenu = { id: newId, name, price, soldOut, image: "", category, options, recommended }; 
+
+      if(imgFileInput.files.length > 0){
+        try {
+            newMenu.image = await readFileAsBase64(imgFileInput.files[0]);
+        } catch (error) {
+            toast("이미지 파일 처리 중 오류 발생");
+            console.error("Error reading file for new menu:", error);
+            newMenu.image = ""; 
+        }
+      } else if(imgUrl){
+        newMenu.image = imgUrl;
+      }
+
+      menu.push(newMenu);
+      save('menu', menu);
+      renderAdminMenu();
+      document.getElementById('add-name').value = '';
+      document.getElementById('add-price').value = '';
+      // document.getElementById('add-stock').value = ''; // 재고 필드 제거
+      document.getElementById('add-category').value = '';
+      document.getElementById('add-options').value = '';
+      imgFileInput.value = '';
+      document.getElementById('add-image-url').value = '';
+      document.getElementById('add-soldout').checked = false;
+      document.getElementById('add-recommended').checked = false;
+      toast(`새 메뉴 "${name}"이(가) 추가되었습니다.`);
+      window.dispatchEvent(new Event('storage'));
+    }
+
+    function exportOrders() {
+      orders = load('orders', []);
+      if (!orders.length) { toast("내보낼 주문 내역이 없습니다."); return; }
+      let csv = "주문ID,주문시간,상태,메뉴명,옵션,수량,단가,합계\n";
+      orders.forEach(order => {
+        order.items.forEach(item => {
+          csv += `${order.id},${order.time},${order.status === "wait" ? "대기" : "완료"},"${item.name.replace(/"/g, '""')}","${(item.option || '').replace(/"/g, '""')}",${item.qty},${item.price},${item.price * item.qty}\n`;
+        });
+      });
+      let blob = new Blob(["\uFEFF"+csv], {type: "text/csv;charset=utf-8;"});
+      let url = URL.createObjectURL(blob);
+      let a = document.createElement('a');
+      a.href = url;
+      a.download = `kiosk_orders_${new Date().toISOString().split('T')[0]}.csv`;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url); 
+      toast("주문 내역 CSV 파일이 다운로드되었습니다.");
+    }
+
+    function printOrders() {
+      let win = window.open('', '_blank', 'width=800,height=600,scrollbars=yes,resizable=yes');
+      orders = load('orders', []);
+      if (!orders.length) { toast("인쇄할 주문 내역이 없습니다."); win.close(); return; }
+      win.document.write('<html><head><title>주문 내역 인쇄</title><style>body{font-family:Arial,sans-serif;margin:20px;} table{border-collapse:collapse;width:100%;margin-top:15px;} th,td{border:1px solid #ccc;padding:8px;text-align:left;} th{background-color:#f2f2f2;} caption{font-size:1.5em;font-weight:bold;margin-bottom:10px;} .item-option{font-size:0.9em; color:gray;}</style></head><body>');
+      win.document.write(`<caption>주문 내역 (${new Date().toLocaleDateString()})</caption>`);
+      win.document.write('<table><thead><tr><th>주문ID</th><th>주문시간</th><th>상태</th><th>메뉴</th><th>수량</th><th>단가</th><th>합계</th></tr></thead><tbody>');
+      orders.forEach(order => {
+        order.items.forEach(item => {
+          win.document.write(`<tr>
+            <td>${order.id}</td>
+            <td>${order.time}</td>
+            <td>${order.status === "wait" ? "대기" : "완료"}</td>
+            <td>${item.name} ${item.option ? `<span class="item-option">(${item.option})</span>` : ''}</td>
+            <td>${item.qty}</td>
+            <td>₩${item.price.toLocaleString()}</td>
+            <td>₩${(item.price * item.qty).toLocaleString()}</td>
+          </tr>`);
+        });
+      });
+      win.document.write('</tbody></table></body></html>');
+      win.document.close();
+      win.focus(); 
+      setTimeout(() => { win.print(); }, 500); 
+    }
+
+    async function syncMenuFromJson() {
+        try {
+            const response = await fetch('menu.json', { cache: 'no-cache' }); 
+            if (!response.ok) {
+                throw new Error(`menu.json 로드 실패: ${response.status} ${response.statusText}`);
+            }
+            const jsonData = await response.json();
+            if (!Array.isArray(jsonData)) {
+                throw new Error("menu.json 형식이 올바르지 않습니다 (배열이 아님).");
+            }
+            // menu.json에서 stock 필드가 없으므로, soldOut 상태만 사용
+            menu = jsonData.map(item => ({ ...item, soldOut: item.soldOut || false })); // soldOut 기본값 false
+            save('menu', menu); 
+            console.log("menu.json 동기화 완료.");
+            if (adminOpened) {
+                renderAdminMenu();
+            }
+        } catch (error) {
+            console.error("menu.json 동기화 중 오류:", error);
+            toast(`오류: ${error.message}. 로컬 데이터를 사용합니다.`);
+            menu = load('menu', defaultMenuFallback); 
+        }
+    }
+
+    document.addEventListener('DOMContentLoaded', () => {
+        syncMenuFromJson().then(() => { 
+            renderOrders();
+        });
+
+        window.addEventListener('storage', (event) => {
+          if (event.key === 'menu') {
+            syncMenuFromJson().then(() => { 
+                if (adminOpened) renderAdminMenu(); 
+            });
+          } else if (event.key === 'orders') {
+            renderOrders(); 
+          }
+        });
+    });
+  </script>
+</body>
+</html>
